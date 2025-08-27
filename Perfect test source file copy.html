@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formative Assessment - General Knowledge</title>
+    
+    <style>
+        :root {
+            --primary: #1565C0; --primary-light: #1E88E5; --background: #E3F2FD;
+            --card-bg: #FFFFFF; --text-primary: #212121; --text-secondary: #757575;
+            --border-color: #BDBDBD; --success: #2E7D32; --danger: #C62828;
+            --disabled-bg: #EEEEEE; --disabled-text: #9E9E9E; --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+            --border-radius: 16px; --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); --transition: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; }
+        body { font-family: var(--font-family); background-color: var(--background); color: var(--text-primary); display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 1rem; }
+        
+        .no-copy {
+            -webkit-user-select: none; /* Safari */
+            -ms-user-select: none;     /* IE 10+ and Edge */
+            user-select: none;         /* Standard syntax */
+        }
+
+        .container { width: 100%; max-width: 800px; margin-top: 1rem; }
+        header { width: 100%; max-width: 800px; display: flex; justify-content: space-between; align-items: center; background-color: var(--card-bg); padding: 1rem 1.5rem; border-radius: var(--border-radius); box-shadow: var(--box-shadow); border: 1px solid var(--border-color); margin-bottom: 1rem; }
+        header h1 { font-size: 1.5rem; color: var(--primary); }
+        #global-timer { font-size: 1.25rem; font-weight: 600; background-color: var(--primary-light); color: white; padding: 0.5rem 1rem; border-radius: 8px; min-width: 80px; text-align: center; }
+        main { width: 100%; }
+        .view { background-color: var(--card-bg); padding: 2rem; border-radius: var(--border-radius); box-shadow: var(--box-shadow); border: 1px solid var(--border-color); }
+        .view.hidden { display: none; }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
+        .form-group input { width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1rem; }
+        #quiz-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; }
+        #question-palette-container { margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); }
+        #question-palette { display: flex; gap: 0.5rem; overflow-x: auto; padding: 0.5rem; scrollbar-width: none; -ms-overflow-style: none; }
+        #question-palette::-webkit-scrollbar { display: none; }
+        .palette-btn { flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--border-color); background-color: var(--card-bg); color: var(--text-secondary); font-weight: 600; cursor: pointer; transition: all var(--transition); }
+        .palette-btn:hover { border-color: var(--primary); }
+        .palette-btn.answered { background-color: var(--success); border-color: var(--success); color: white; }
+        .palette-btn.current { border-color: var(--primary); background-color: var(--primary); color: white; transform: scale(1.1); }
+        #options-container { display: grid; gap: 1rem; margin-top: 1.5rem; }
+        .option-btn { width: 100%; padding: 1rem; font-size: 1rem; text-align: left; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; transition: background-color var(--transition), color var(--transition), border-color var(--transition); }
+        .option-btn.selected { background-color: var(--primary-light); border-color: var(--primary); color: white; }
+        .option-btn:disabled { background-color: var(--disabled-bg); color: var(--disabled-text); cursor: not-allowed; }
+        .btn { padding: 0.75rem 1.5rem; font-size: 1rem; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; }
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-secondary { background-color: #f0f0f0; color: #333; }
+        .btn-danger { background-color: var(--danger); color: white; }
+        #navigation-controls { display: flex; justify-content: space-between; margin-top: 2rem; }
+    </style>
+</head>
+<body>
+    <header><h1>FORMATIVE ASSESSMENT</h1><div id="global-timer">05:00</div></header>
+    <main class="container">
+        <div id="registration-view" class="view">
+            <h2>Welcome</h2>
+            <p style="text-align: center; margin-bottom: 2rem; color: var(--text-secondary);">Enter your details to begin the assessment.</p>
+            <form id="registration-form">
+                <div class="form-group"><label for="userName">Full Name</label><input type="text" id="userName" required autocomplete="name"></div>
+                <div class="form-group"><label for="rollNumber">Roll Number</label><input type="text" id="rollNumber" required></div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Start Quiz</button>
+            </form>
+        </div>
+        <div id="quiz-view" class="view hidden">
+            <div id="question-palette-container"><div id="question-palette"></div></div>
+            <div id="quiz-header">
+                <p id="progress-text">Question 1 / 10</p>
+                <div id="question-timer" style="font-weight:bold; font-size: 1.2em;">20</div>
+            </div>
+            <h3 id="question-text" style="margin-top:1rem; min-height: 3em;"></h3>
+            <div id="options-container"></div>
+            <div id="navigation-controls">
+                <button id="prev-btn" class="btn btn-secondary">Previous</button>
+                <button id="submit-btn" class="btn btn-danger">Submit</button>
+                <button id="next-btn" class="btn btn-primary">Next</button>
+            </div>
+        </div>
+        <div id="results-view" class="view hidden">
+            <h2>Submission Successful!</h2>
+            <p>Your answers have been recorded. You may now close this window.</p>
+        </div>
+    </main>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const config = {
+            timing: { totalDuration: 300, questionDuration: 20 },
+            data: {
+                endpoint: "https://sheetdb.io/api/v1/3lszhsvlx1x99",
+                localStorageKey: "medQuizStable_v5"
+            },
+            questions: [
+              { q: "What is the capital city of Canada?", opts: ["Toronto", "Vancouver", "Ottawa", "Montreal"]},
+              { q: "Which planet is known as the Red Planet?", opts: ["Mars", "Venus", "Jupiter", "Saturn"]},
+              { q: "Who painted the Mona Lisa?", opts: ["Vincent van Gogh", "Pablo Picasso", "Leonardo da Vinci", "Michelangelo"]},
+              { q: "What is the largest ocean on Earth?", opts: ["Atlantic", "Indian", "Arctic", "Pacific"]},
+              { q: "In which country would you find the ancient city of Petra?", opts: ["Egypt", "Greece", "Jordan", "Italy"]},
+              { q: "What is the chemical symbol for Gold?", opts: ["Au", "Ag", "Gd", "Go"]},
+              { q: "Which author wrote the 'Harry Potter' series?", opts: ["J.R.R. Tolkien", "C.S. Lewis", "J.K. Rowling", "George R.R. Martin"]},
+              { q: "How many continents are there in the world?", opts: ["5", "6", "7", "8"]},
+              { q: "What is the currency of Japan?", opts: ["Yuan", "Won", "Yen", "Baht"]},
+              { q: "Who was the first person to step on the moon?", opts: ["Buzz Aldrin", "Yuri Gagarin", "Neil Armstrong", "Michael Collins"]}
+            ]
+        };
+        const dom = {
+            regView: document.getElementById('registration-view'), quizView: document.getElementById('quiz-view'),
+            resultsView: document.getElementById('results-view'), regForm: document.getElementById('registration-form'),
+            globalTimer: document.getElementById('global-timer'), qTimer: document.getElementById('question-timer'),
+            palette: document.getElementById('question-palette'), qText: document.getElementById('question-text'),
+            opts: document.getElementById('options-container'), prevBtn: document.getElementById('prev-btn'),
+            nextBtn: document.getElementById('next-btn'), submitBtn: document.getElementById('submit-btn'),
+            progressText: document.getElementById('progress-text'),
+        };
+        let state = { user: {}, answers: [], currentQ: 0, globalTime: config.timing.totalDuration, questionTimeLeft: [], globalTimerId: null, qTimerId: null, isFinished: false };
+
+        const preventDefaultAction = e => e.preventDefault();
+        const enableProtection = () => {
+            document.body.classList.add('no-copy');
+            ['contextmenu', 'copy', 'cut', 'paste'].forEach(event => document.addEventListener(event, preventDefaultAction));
+        };
+        const disableProtection = () => {
+            document.body.classList.remove('no-copy');
+            ['contextmenu', 'copy', 'cut', 'paste'].forEach(event => document.removeEventListener(event, preventDefaultAction));
+        };
+
+        const showView = (viewToShow) => {
+            [dom.regView, dom.quizView, dom.resultsView].forEach(v => v.classList.add('hidden'));
+            if (viewToShow) viewToShow.classList.remove('hidden');
+        };
+        const renderQuestion = () => {
+            if(state.isFinished) return;
+            const question = config.questions[state.currentQ];
+            dom.qText.textContent = question.q;
+            dom.opts.innerHTML = '';
+            question.opts.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = `${String.fromCharCode(65 + i)}) ${opt}`;
+                if (state.answers[state.currentQ] === i) btn.classList.add('selected');
+                btn.onclick = () => selectAnswer(i);
+                dom.opts.appendChild(btn);
+            });
+            updateUI();
+            manageQuestionTimer();
+        };
+        const updateUI = () => {
+            dom.palette.innerHTML = '';
+            config.questions.forEach((_, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'palette-btn';
+                btn.textContent = i + 1;
+                if (i === state.currentQ) btn.classList.add('current');
+                if (state.answers[i] != null) btn.classList.add('answered');
+                btn.onclick = () => { state.currentQ = i; renderQuestion(); };
+                dom.palette.appendChild(btn);
+            });
+            dom.progressText.textContent = `Question ${state.currentQ + 1} of ${config.questions.length}`;
+            dom.prevBtn.disabled = state.currentQ === 0;
+            dom.nextBtn.disabled = state.currentQ === config.questions.length - 1;
+        };
+        const selectAnswer = (index) => {
+            // Prevent answering if the timer for this question has already run out.
+            if (state.questionTimeLeft[state.currentQ] <= 0) return;
+            state.answers[state.currentQ] = index;
+            // Re-render to show the "selected" state, the timer will continue automatically.
+            renderQuestion();
+        };
+
+        // --- *** UPDATED TIMER LOGIC *** ---
+        // This function now correctly pauses and resumes the timer for each question.
+        const manageQuestionTimer = () => {
+            clearInterval(state.qTimerId); // Always clear timer from the previous question.
+
+            let timeLeft = state.questionTimeLeft[state.currentQ];
+            dom.qTimer.textContent = timeLeft;
+
+            // If time for this question has run out, lock the options and stop.
+            if (timeLeft <= 0) {
+                dom.opts.querySelectorAll('.option-btn').forEach(btn => btn.disabled = true);
+                return; // Do not start a new timer.
+            }
+
+            // Otherwise, the question is active. Ensure options are enabled.
+            dom.opts.querySelectorAll('.option-btn').forEach(btn => btn.disabled = false);
+            
+            // Start a new timer that counts down for the *current* question.
+            state.qTimerId = setInterval(() => {
+                // Decrement the time for the current question in our state array.
+                state.questionTimeLeft[state.currentQ]--; 
+                dom.qTimer.textContent = state.questionTimeLeft[state.currentQ];
+
+                // If this question's timer hits zero, stop it and lock its options.
+                if (state.questionTimeLeft[state.currentQ] <= 0) {
+                    clearInterval(state.qTimerId);
+                    dom.opts.querySelectorAll('.option-btn').forEach(btn => btn.disabled = true);
+                }
+            }, 1000);
+        };
+        // --- *** END OF UPDATED TIMER LOGIC *** ---
+
+        const submitQuiz = async () => {
+            if (state.isFinished) return;
+            state.isFinished = true;
+            clearInterval(state.globalTimerId);
+            clearInterval(state.qTimerId);
+            disableProtection(); 
+            
+            const payload = { name: state.user.name, roll_number: state.user.rollNumber };
+            state.answers.forEach((ans, i) => {
+                payload[`Q${i+1}`] = ans != null ? String.fromCharCode(65 + ans) : "-";
+            });
+            showView(dom.resultsView);
+            try {
+                const response = await fetch(config.data.endpoint, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+                });
+                if (!response.ok) throw new Error('Server rejected submission.');
+            } catch (error) {
+                console.error("Submission Error:", error);
+                document.getElementById('results-view').innerHTML = '<h2>Submission Failed</h2><p>Please contact your administrator.</p>';
+            }
+        };
+        const startQuiz = () => {
+            state.answers = Array(config.questions.length).fill(null);
+            state.questionTimeLeft = Array(config.questions.length).fill(config.timing.questionDuration);
+            enableProtection();
+            showView(dom.quizView);
+            renderQuestion();
+            state.globalTimerId = setInterval(() => {
+                state.globalTime--;
+                dom.globalTimer.textContent = `${String(Math.floor(state.globalTime/60)).padStart(2,'0')}:${String(state.globalTime%60).padStart(2,'0')}`;
+                if (state.globalTime <= 0) submitQuiz();
+            }, 1000);
+        };
+        dom.regForm.onsubmit = (e) => {
+            e.preventDefault();
+            state.user.name = dom.regForm.userName.value;
+            state.user.rollNumber = dom.regForm.rollNumber.value;
+            startQuiz();
+        };
+        dom.prevBtn.onclick = () => { if (state.currentQ > 0) { state.currentQ--; renderQuestion(); } };
+        dom.nextBtn.onclick = () => { if (state.currentQ < config.questions.length - 1) { state.currentQ++; renderQuestion(); } };
+        dom.submitBtn.onclick = () => { if(confirm('Are you sure you want to submit? This cannot be undone.')) submitQuiz(); };
+        
+        dom.globalTimer.textContent = `${String(Math.floor(config.timing.totalDuration/60)).padStart(2,'0')}:${String(config.timing.totalDuration%60).padStart(2,'0')}`;
+        showView(dom.regView);
+    });
+    </script>
+</body>
+</html>
